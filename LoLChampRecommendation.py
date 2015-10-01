@@ -10,6 +10,7 @@ import urllib2
 import time
 import sys
 from scipy.stats import linregress
+import argparse
 
 #Collect the raw player info of master and challenger tier players of a specific region
 def getMasterPlayers(region, api_key):
@@ -128,7 +129,7 @@ def getRecommendations(user_matches, userID, all_region_data):
                         x.append(user_matches[champion])
                         y.append(player_matches[str(champion)])
                 #filter out insignifcant graphs with few points
-                if len(x) > 9 and max(y) > 0.05: #TODO: figure out these parameters
+                if len(x) > 9 and max(y) > 0.03:
                     similarity_list[i][playerID] = linregress(x, y)[2]
 
     #user similarity_list to create weighted estimate of a user's future interest in a champion
@@ -143,8 +144,8 @@ def getRecommendations(user_matches, userID, all_region_data):
             if player_similarity < 0:
                 continue
             for champion, proportion in player_matches.iteritems():
-                #only calculate for champions not in user's own pool
-                if int(champion) not in user_matches.keys():
+                #only calculate for champions not in user's own pool or in a very low proportion of user's champion pool
+                if int(champion) not in user_matches.keys() or (int(champion) in user_matches.keys() and user_matches[int(champion)] < 0.01):
                     totals.setdefault(champion, 0)
                     totals[champion] += player_similarity * player_matches[str(champion)]
                     similarity_sums.setdefault(champion, 0)
@@ -189,9 +190,16 @@ def main():
         euw_players = openFile("euw")
         kr_players = openFile("kr")
 
-     #Enter username to find user's in-game ID number
-    username = "ramsey80" #TODO: change to argument input
-    return_username = username.replace(" ", "")
+    #Enter username to find user's in-game ID number
+    parser = argparse.ArgumentParser(description = "Make recommendations using master/challenger tier players form NA, EUW, EUNE, and KR")
+    parser.add_argument('username', help = "The username to recommend a champion for. If spaces are in the username, surround the name in quotation marks.")
+    parser.add_argument('--n', nargs = '?', const = 5, type = int, default = 5, help = "The number of recommended champions") #default to 5 recommendations
+    args = parser.parse_args()
+    print args
+
+    #username = "thisiseric"
+    username = args.username
+    return_username = (username.replace(" ", "")).lower() #riot API uses no space verison of username
     print username
     #assume user is on NA server
     userID = getSummonerID("na", username, api_key)[return_username]['id']
