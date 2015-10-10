@@ -11,6 +11,9 @@ import time
 import sys
 from scipy.stats import linregress
 import argparse
+import matplotlib.pyplot as plt
+import numpy as np
+import bisect
 
 #Collect the raw player info of master and challenger tier players of a specific region
 def getMasterPlayers(region, api_key):
@@ -115,19 +118,60 @@ def printRecommendedChampions(recommendations, user_champions, api_key, n = 5):
     #sort by predicted proportion from highest to lowest
     sorted_user_champions = sorted(user_champions.items(), key = lambda x: x[1], reverse = True)
     print "Printing user's proportion of ranked games played for each champion for reference: "
+
+    pie_names = [] #only the champion names
+    pie_names_proportions = [] #champion names with associated proportion
+    pie_proportions = []
     for i in sorted_user_champions:
-        print "%s: %f" % (static_championID_conversions[int(i[0])], i[1])
+        champion_conversion = static_championID_conversions[int(i[0])]
+        print "%s: %f" % (champion_conversion, i[1])
+        pie_names_proportions.append("%s : %.2f%%" % (champion_conversion, i[1] *100))
+        pie_names.append(champion_conversion)
+        pie_proportions.append(i[1] * 100)
 
     #couldnt find enough data, so no recommendations were found
     if len(recommendations) == 0:
         print "Sorry, couldn't find enough data to make a recommendation"
         return
 
+    #avoid shallow copy operation
+    bar_names = [i for i in pie_names]
+    bar_proportions = [i for i in pie_proportions]
+    bar_proportions.sort() # sort ascending for the insort
+    recommend_indexes = []
     #print the lower of input n and number of recommendations actually available to avoid out of bounds error
     loop_range = n if n < len(recommendations) else len(recommendations)
     print "\nThe predicted champions are:"
     for i in range(loop_range):
-        print "%s with predicted playing proprtion of %f" % (static_championID_conversions[int(recommendations[i][0])], recommendations[i][1])
+        champion_conversion = static_championID_conversions[int(recommendations[i][0])]
+        champion_proportion = recommendations[i][1]
+        print "%s with predicted playing proprtion of %f" % (champion_conversion, champion_proportion)
+        #insert recomendations into the proper position in the bar lists
+        index = bisect.bisect(bar_proportions, champion_proportion*100)
+        bisect.insort(bar_proportions, champion_proportion*100)
+        #account for inversion
+        bar_names.insert(len(bar_proportions) - index - 1, champion_conversion)
+        recommend_indexes.append(len(bar_proportions) - index - 1)
+
+    bar_proportions.reverse()
+    
+    #print pie chart of player's champions
+    plt.figure(0)
+    patches, texts = plt.pie(pie_proportions, shadow = True, startangle = 90, radius = 0.7)
+    plt.legend(patches, pie_names_proportions, loc="center left", bbox_to_anchor=(-0.18, 0.5), fontsize = 12)
+    plt.title('Your current champion proportions')
+
+    #bar chart of recommended champions
+    plt.figure(1, figsize=(20,10))
+    barlist = plt.bar(range(len(bar_proportions)), bar_proportions, 0.8, color = 'y')
+    plt.xticks(np.arange(len(bar_proportions)) + 0.8/2.0, bar_names, rotation='vertical', fontsize=8)
+    plt.title("Recommended Champions with Predicted Proportions")
+    plt.ylabel('Percent of Ranked Games (%)')
+    plt.xlabel('Champion Name')
+    #highlight recommendations
+    for i in recommend_indexes:
+        barlist[i].set_color('r')
+    plt.show()
 
 
 #Compute the predicted proportions for champions not/rarely played by the username in ranked using linear regression
