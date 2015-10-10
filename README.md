@@ -25,6 +25,47 @@ This will print out the top <i>num</i> recommendations. For further assistance, 
 
 Lastly, this program uses a local .json storage to store the player matches from master/challenger tier for NA, EUW, EUNE, and KR from running once. To refresh it, you can set the use_local variable to False right at the beginning of main(). However, this takes a very long time due to the rate limiting restrictions of the Riot API.
 
+#Example Output
+This section demonstrates the expected output of this program. As an example, I will use my own username "jteo1". After running the command:
+
+python ChampionRecommendation.py jteo1
+
+Username: jteo1
+
+Printing user's proportion of ranked games played for each champion for reference: <br>
+orianna: 0.472393 <br>
+lucian: 0.153374 <br>
+ahri: 0.104294 <br>
+leesin: 0.092025 <br>
+thresh: 0.073620 <br>
+zed: 0.030675 <br>
+syndra: 0.018405 <br>
+elise: 0.018405 <br>
+cassiopeia: 0.006135 <br>
+zyra: 0.006135 <br>
+swain: 0.006135 <br>
+lulu: 0.006135 <br>
+morgana: 0.006135 <br>
+jinx: 0.006135 <br>
+
+The predicted champions are: <br>
+graves with predicted playing proprtion of 0.025693 <br>
+riven with predicted playing proprtion of 0.025600 <br>
+yasuo with predicted playing proprtion of 0.025528 <br>
+vayne with predicted playing proprtion of 0.024985 <br>
+leblanc with predicted playing proprtion of 0.023337 <br>
+
+Firstly, my own current ranked champion proportions are shown. Then, the recommended champions with the predicted proportions are displayed.
+
+In addition to this, two plots from the matplotlib library are used to illustrate these two groups of data. To show my own proportion of champion games, I used a pie chart:
+![alt tag](https://github.com/jteo1/LoL-Champion-Recommender/blob/master/README%20pictures/example_pie_chart.PNG)
+
+Then, a bar graph of my own champion proportions alongside the recommended champions is displayed to compare the predicted proportions (in red) with my own current proportions (in yellow).
+
+![alt tag](https://github.com/jteo1/LoL-Champion-Recommender/blob/master/README%20pictures/example_bar_graph.PNG)
+
+Evidently, my champion proportions are very strongly skewed towards Orianna, especially since I don't play many ranked games. Even though the proportion seems very low, it is common that a player has a 1-2 champions to player in each of the 5 roles, so the prediction is likely to fall into one of these categories.
+
 # Notes about the program/algorithm
 This project serves not only to help other players find new champions, but to entertain my interest in learning data science
 principles such as machine learning and python. More specifically, I wanted to apply collaborative filtering on league's database of players to see how accurate the predictions would be. The first step was to decide on a metric to rate the "score" a user gave to a champion. Naively, we could use games played, but that would create a signifcant rift between two players who have played different amounts of ranked games. To avoid this bias, we can use a proportion of games played with a certain champion to the total number of ranked games played. Reasonably, a player's score of a champion will thus be higher for champions that they play more frequently.
@@ -32,7 +73,7 @@ principles such as machine learning and python. More specifically, I wanted to a
 The method of collaborative filtering works here by collecting the champion preferences of a user using the aforementioned proportion, and compares this against other players' proportions with the underlying assumption that two players with similar tastes will like similar champions. Thus, if player A and B have the a very similar champion pool, and player B also plays champions that player A doesn't, then one may assume that player A will also like those champions. Firstly, we need to generate a list of ranked matches for each user in our data set, and calculate the proportion of total games they played with each champoin in their pool. Then, we need to determine a "similarity score" between the user and each other player using this information against our own proportions for each champion. For example, we can view the intersection of these two player's champion pool's proportion and plot the proportions of the two as pairs of points, with the two users representing the axes:
 
 <b>Graph illustrating a positive linear correlating between two players</b>
-![alt tag](https://github.com/jteo1/LoL-Champion-Recommender/blob/master/all%20region%20data/Capture.PNG)
+![alt tag](https://github.com/jteo1/LoL-Champion-Recommender/blob/master/README%20pictures/proportion%20regression.PNG)
 
 
 My own data is on the x-axis, and the other player's data is along the y-axis. Each data point implictly represents a champion. For example, the point on the far right shows one of my favorite champions that I play that this other player plays at a relatively high rate considering the intersection between my champion pool and the other player's. To determine the 
