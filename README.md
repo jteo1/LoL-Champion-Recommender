@@ -64,7 +64,7 @@ Then, a bar graph of my own champion proportions alongside the recommended champ
 
 ![alt tag](https://github.com/jteo1/LoL-Champion-Recommender/blob/master/README%20pictures/example_bar_graph.PNG)
 
-Evidently, my champion proportions are very strongly skewed towards Orianna, especially since I don't play many ranked games. Even though the proportion seems very low, it is common that a player has a 1-2 champions to player in each of the 5 roles, so the prediction is likely to fall into one of these categories.
+Evidently, my champion proportions are very strongly skewed towards Orianna, especially since I don't play many ranked games. Even though the proportion seems very low, it is common for a player to have 1-2 champions to play in each of the 5 roles in the game, which makes the predicted proportions seem deceivingly low. 
 
 # Notes about the program/algorithm
 This project serves not only to help other players find new champions, but to entertain my interest in learning data science
